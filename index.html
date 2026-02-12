@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nossa Retrospectiva</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --spotify-green: #1DB954;
+            --spotify-black: #191414;
+            --spotify-purple: #8C4AF2;
+            --spotify-pink: #F573A0;
+            --text-white: #FFFFFF;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--spotify-black);
+            color: var(--text-white);
+            overflow: hidden; /* Trava rolagem do mouse */
+        }
+
+        /* Container que desliza */
+        .story-container {
+            height: 100vh;
+            width: 100%;
+            transition: transform 1s cubic-bezier(0.25, 1, 0.5, 1); 
+            position: relative;
+        }
+
+        /* Cada Slide */
+        .slide {
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            position: relative;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);
+            overflow: hidden;
+        }
+
+        /* Cores de Fundo */
+        #slide1 { background-color: #2e0947; }
+        #slide-chat { background-color: #202225; }
+        #slide2 { background-color: #0b381a; }
+        #slide3 { background-color: #4a0d24; }
+        #slide4 { background-color: #000000; }
+
+        /* Tipografia */
+        h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            opacity: 0;
+            z-index: 10;
+        }
+
+        p { font-size: 1.2rem; opacity: 0; margin-bottom: 2rem; z-index: 10; }
+
+        /* Elementos Visuais */
+        .stat-number {
+            font-size: 5rem;
+            color: var(--spotify-green);
+            font-weight: 900;
+            display: block;
+            margin: 1rem 0;
+            text-shadow: 0 0 20px rgba(29, 185, 84, 0.5);
+            opacity: 0;
+        }
+
+        .cover-art {
+            width: 250px;
+            height: 250px;
+            background-color: #333;
+            margin: 20px auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #aaa;
+            border-radius: 10px;
+            opacity: 0;
+            z-index: 10;
+        }
+        
+        /* Imagem dentro da capa */
+        .cover-art img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .play-btn {
+            background-color: var(--spotify-green);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            z-index: 20;
+            transition: transform 0.2s;
+        }
+        .play-btn:active { transform: scale(0.95); }
+
+        /* --- DISCORD --- */
+        .discord-screen {
+            background-color: #36393f;
+            width: 100%;
+            max-width: 600px;
+            padding: 20px 10px;
+            font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            text-align: left;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6); 
+            z-index: 10;
+        }
+
+        .discord-group { display: flex; margin-bottom: 20px; align-items: flex-start; }
+        .discord-avatar-container { width: 50px; margin-right: 16px; flex-shrink: 0; }
+        .discord-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background-size: cover; background-position: center;
+            background-color: #7289da;
+        }
+        .discord-content { flex-grow: 1; }
+        .discord-header { display: flex; align-items: baseline; margin-bottom: 4px; }
+        .discord-username { font-weight: 500; font-size: 1rem; color: #fff; margin-right: 8px; }
+        .discord-timestamp { font-size: 0.75rem; color: #72767d; }
+        .discord-msg {
+            font-size: 0.9375rem; line-height: 1.375rem; color: #dcddde;
+            white-space: pre-wrap; opacity: 0; transform: translateY(10px);
+        }
+        .badge-soul {
+            background-color: #5865F2; color: white; font-size: 0.6rem;
+            padding: 1px 4px; border-radius: 3px; margin-left: 5px;
+            text-transform: uppercase; font-weight: bold; vertical-align: middle;
+        }
+
+        /* --- QUADRADOS FLUTUANTES --- */
+        .floating-square {
+            position: absolute; z-index: 1; border-radius: 20px; opacity: 0.2;
+            animation: floatSpin 15s infinite linear;
+        }
+        .sq-green { background-color: #1DB954; box-shadow: 0 0 30px #1DB954; }
+        .sq-purple { background-color: #8C4AF2; box-shadow: 0 0 30px #8C4AF2; }
+        .sq-pink { background-color: #F573A0; box-shadow: 0 0 30px #F573A0; }
+        .sq-blue { background-color: #2E77D0; box-shadow: 0 0 30px #2E77D0; }
+        .sq-lg { width: 300px; height: 300px; }
+        .sq-md { width: 150px; height: 150px; }
+        .sq-sm { width: 80px; height: 80px; }
+
+        /* --- ANIMAÇÕES --- */
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes zoomIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        @keyframes floatSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeInMsg { to { opacity: 1; transform: translateY(0); } }
+        
+        /* Flashbang (Clarão) */
+        @keyframes flashBang {
+            0% { opacity: 0; }
+            10% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .flash-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; opacity: 0; pointer-events: none; z-index: 99;
+        }
+
+        .animate-text { animation: fadeInUp 0.8s ease forwards; }
+        .animate-img { animation: zoomIn 1s ease forwards; animation-delay: 0.3s; }
+        .delay-1 { animation-delay: 0.2s; }
+        .delay-2 { animation-delay: 0.5s; }
+        .delay-3 { animation-delay: 0.8s; }
+
+        /* Botões de Navegação */
+        .nav-buttons {
+            position: fixed; bottom: 30px; right: 30px;
+            display: flex; flex-direction: column; gap: 15px; z-index: 100;
+        }
+        .arrow-btn {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            color: white; width: 50px; height: 50px; border-radius: 50%;
+            cursor: pointer; font-size: 1.5rem; display: flex;
+            align-items: center; justify-content: center; transition: all 0.3s ease;
+        }
+        .arrow-btn:hover { background-color: var(--spotify-green); transform: scale(1.1); }
+        .arrow-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+/* --- ESTILOS NOVOS --- */
+
+/* Lista de Jogos (Estilo Top Tracks) */
+.games-list {
+    width: 100%;
+    max-width: 400px;
+    margin-top: 20px;
+    text-align: left;
+}
+
+.game-item {
+    display: flex;
+    align-items: center;
+    background: rgba(255,255,255,0.1);
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    opacity: 0; /* Para animar */
+    transform: translateX(-20px);
+}
+
+.game-rank {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--spotify-green);
+    margin-right: 15px;
+    width: 30px;
+}
+
+.game-info h3 { font-size: 1.1rem; margin-bottom: 2px; }
+.game-info span { font-size: 0.8rem; color: #bbb; }
+
+/* Slide de Tentativas (Humor) */
+.attempts-graph {
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    height: 200px;
+    margin: 30px 0;
+}
+
+.bar {
+    width: 60px;
+    background: var(--spotify-pink);
+    border-radius: 5px 5px 0 0;
+    position: relative;
+    opacity: 0;
+    transform: scaleY(0);
+    transform-origin: bottom;
+}
+
+.bar-label {
+    position: absolute;
+    bottom: -30px;
+    width: 100%;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #bbb;
+}
+
+.bar-value {
+    position: absolute;
+    top: -30px;
+    width: 100%;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+    </style>
+</head>
+<body>
+
+    <div class="story-container">
+        
+        <section class="slide" id="slide1">
+            <h1 class="animate-text">Gustavo & <br> Yuri</h1>
+            <p class="animate-text delay-1">Retrospectiva</p>
+            <p class="animate-text delay-2" style="font-size: 0.9rem;">(Aumente o som 🔊)</p>
+            <button class="play-btn animate-text delay-3" onclick="startExperience()">Começar</button>
+            
+            <div class="floating-square sq-purple sq-lg" style="top: -50px; left: -50px;"></div>
+            <div class="floating-square sq-green sq-md" style="bottom: 10%; right: -20px;"></div>
+
+            <audio id="bg-music" loop>
+                <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+            </audio>
+        </section>
+
+<section class="slide" id="slide-chat" style="background-color: #202225;">
+    <div class="flash-overlay" id="flash-effect"></div>
+    
+    <div class="discord-screen">
+        
+        <div class="discord-group">
+            <div class="discord-avatar-container">
+                <div class="discord-avatar" style="background-image: url('foto-dele.jpg');"></div>
+            </div>
+            <div class="discord-content">
+                <div class="discord-header">
+                    <span class="discord-username" style="color: #FAA61A;">Kero_kelo</span> <span class="discord-timestamp">02/01/2026 22:49</span>
+                </div>
+                <div class="discord-msg">pego vc e te boto no meu colo, te abraço. Um abraço que vc sempre mereceu</div>
+            </div>
+        </div>
+
+        <div class="discord-group">
+            <div class="discord-avatar-container">
+                <div class="discord-avatar" style="background-image: url('foto-voce.jpg');"></div>
+            </div>
+            <div class="discord-content">
+                <div class="discord-header">
+                    <span class="discord-username" style="color: #9B59B6;">Shark</span> <span class="badge-soul">Alfa</span>
+                    <span class="discord-timestamp">02/01/2026 22:50</span>
+                </div>
+                <div class="discord-msg">Ah? Kk</div>
+            </div>
+        </div>
+
+        <div class="discord-group">
+            <div class="discord-avatar-container">
+                <div class="discord-avatar" style="background-image: url('foto-dele.jpg');"></div>
+            </div>
+            <div class="discord-content">
+                <div class="discord-header">
+                    <span class="discord-username" style="color: #FAA61A;">Kero_kelo</span>
+                    <span class="discord-timestamp">02/01/2026 22:51</span>
+                </div>
+                <div class="discord-msg" style="font-weight: bold;">pego vc e te boto no chão para voce não ficar mais tranquilo</div>
+            </div>
+        </div>
+
+        <div class="discord-group">
+            <div class="discord-avatar-container">
+                <div class="discord-avatar" style="background-image: url('foto-voce.jpg');"></div>
+            </div>
+            <div class="discord-content">
+                <div class="discord-header">
+                    <span class="discord-username" style="color: #9B59B6;">Shark</span>
+                    <span class="discord-timestamp">02/01/2026 22:52</span>
+                </div>
+                <div class="discord-msg" style="font-weight: bold;">me sento no seu colo de volta</div>
+                <div class="discord-msg">Falei pra me tirar?</div>
+            </div>
+        </div>
+
+        <div class="discord-group">
+            <div class="discord-avatar-container">
+                <div class="discord-avatar" style="background-image: url('foto-dele.jpg');"></div>
+            </div>
+            <div class="discord-content">
+                <div class="discord-header">
+                    <span class="discord-username" style="color: #FAA61A;">Kero_kelo</span>
+                    <span class="discord-timestamp">02/01/2026 22:52</span>
+                </div>
+                <div class="discord-msg">que bom que vc gostou</div>
+                <div class="discord-msg" style="font-weight: bold;">te prendo e deixo vc assisti seu video tranquilinho no meu colo</div>
+                <div class="discord-msg">agora vc fica</div>
+            </div>
+        </div>
+
+    </div>
+
+    <h2 class="animate-text" style="margin-top: 20px; font-size: 1.5rem; z-index: 5;">O dia do colo... ❤️</h2>
+</section>
+<section class="slide" style="background-color: #5865F2;"> <div class="floating-square sq-blue sq-lg" style="top: -50px; right: -50px;"></div>
+    
+    <h1 class="animate-text">Haja assunto...</h1>
+    <p class="animate-text delay-1">Total de mensagens trocadas:</p>
+    
+    <span class="stat-number animate-text delay-2" style="color: #fff; text-shadow: 0 0 20px #000;">
+        3.208
+    </span>
+    
+    <p class="animate-text delay-3">E 90% foi "bom dia" ou fofoca.</p>
+</section>
+        <section class="slide" id="slide2">
+            <h1 class="animate-text">Vocês superaram</h1>
+            <span class="stat-number animate-text delay-1">547 km</span>
+            <p class="animate-text delay-2">De distância (Serra x Rio)</p>
+            <p class="animate-text delay-3">Mas 0km de distância no coração.</p>
+            
+            <div class="floating-square sq-pink sq-lg" style="top: 30%; left: 50%; transform: translate(-50%, -50%); opacity: 0.15;"></div>
+            <div class="floating-square sq-blue sq-sm" style="top: 10%; right: 10%;"></div>
+        </section>
+<section class="slide" style="background-color: #121212;">
+    <h1 class="animate-text">Nosso <br>Gaming Duo</h1>
+    <p class="animate-text delay-1">Os jogos que a gente mais tryhardou:</p>
+
+    <div class="games-list">
+        <div class="game-item animate-text delay-1" style="animation-delay: 0.2s;">
+            <div class="game-rank">1</div>
+            <div class="game-info">
+                <h3>Valorant/LoL</h3>
+                <span>Estresse puro</span>
+            </div>
+        </div>
+
+        <div class="game-item animate-text delay-2" style="animation-delay: 0.4s;">
+            <div class="game-rank">2</div>
+            <div class="game-info">
+                <h3>Overwath</h3>
+                <span>COISA DE MALUCO</span>
+            </div>
+        </div>
+
+        <div class="game-item animate-text delay-3" style="animation-delay: 0.6s;">
+            <div class="game-rank">3</div>
+            <div class="game-info">
+                <h3>Roblox</h3>
+                <span>(Não julgue)</span>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="slide" id="slide3">
+            <h1 class="animate-text">Seu Top #1</h1>
+            
+            <div class="cover-art animate-img">
+                <img src="Captura de tela 2026-01-15 184222.png" alt="Foto do namorado" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;">
+            </div>
+            
+            <p class="animate-text delay-2">
+                Você passou <strong>100%</strong> do tempo pensando nele.
+            </p>
+            
+            <h5 class="animate-text delay-3" style="font-size: 0.8rem; color: #aaa; margin-top: -15px; margin-bottom: 20px;">(principalmente pelado 99% das vezes)</h5>
+
+            <div style="width: 80%; background: #555; height: 5px; border-radius: 5px;">
+                <div style="width: 100%; background: var(--spotify-green); height: 100%; border-radius: 5px;"></div>
+            </div>
+        </section>
+<section class="slide" style="background-color: #881c1c;">
+    <h1 class="animate-text">A Persistência</h1>
+    <p class="animate-text delay-1">Quantas vezes eu tive que pedir:</p>
+
+    <div class="attempts-graph">
+        <div class="bar animate-bar" style="height: 100%; background-color: #fff;">
+            <span class="bar-value">3</span>
+            <span class="bar-label">Pedidos</span>
+        </div>
+
+        <div class="bar animate-bar delay-2" style="height: 10%; background-color: var(--spotify-green);">
+            <span class="bar-value">1</span>
+            <span class="bar-label">Sim ❤️</span>
+        </div>
+    </div>
+    
+    <p class="animate-text delay-3">Brasileiro não desiste nunca.</p>
+</section>
+<section class="slide" id="days-slide" style="background-color: #000;">
+    <div class="floating-square sq-green sq-lg" style="bottom: -50px; left: -50px;"></div>
+    
+    <h1 class="animate-text">Juntos há</h1>
+    
+    <span id="days-count" class="stat-number animate-text delay-1">0</span>
+    
+    <p class="animate-text delay-2">Dias aturando minhas loucuras.</p>
+    <p class="animate-text delay-3" style="font-size: 0.8rem; color: #888;">Desde o pedido oficial (finalmente)</p>
+</section>
+        <section class="slide" id="slide4">
+            <div class="shape" style="width: 200px; height: 200px; background: var(--spotify-purple); bottom: 50px; right: -50px; filter: blur(60px);"></div>
+            <h1 class="animate-text">Obrigado por tudo!</h1>
+            <p class="animate-text delay-1">Te amo muito.</p>
+            <p class="animate-text delay-2" style="font-size: 3rem;">❤️</p>
+        </section>
+
+    </div> <div class="nav-buttons">
+        <button class="arrow-btn" id="btn-up" onclick="changeSlide(-1)">↑</button>
+        <button class="arrow-btn" id="btn-down" onclick="changeSlide(1)">↓</button>
+    </div>
+
+    <script>
+        let currentSlideIndex = 0;
+        const slides = document.querySelectorAll('.slide');
+        const container = document.querySelector('.story-container');
+        const btnUp = document.getElementById('btn-up');
+        const btnDown = document.getElementById('btn-down');
+        const music = document.getElementById('bg-music');
+        const startDate = new Date(2026, 0, 7);
+        updateButtons();
+
+        function startExperience() {
+            music.play().catch(e => console.log("Áudio bloqueado pelo navegador (clique na página)"));
+            changeSlide(1); // Vai para o slide 1 (índice 1, pois começa no 0)
+        }
+
+        function changeSlide(direction) {
+            const nextIndex = currentSlideIndex + direction;
+
+            if (nextIndex >= 0 && nextIndex < slides.length) {
+                currentSlideIndex = nextIndex;
+                container.style.transform = `translateY(-${currentSlideIndex * 100}vh)`;
+                updateButtons();
+                triggerAnimations(slides[currentSlideIndex]);
+            }
+        }
+
+        function updateButtons() {
+            btnUp.disabled = currentSlideIndex === 0;
+            btnDown.disabled = currentSlideIndex === slides.length - 1;
+        }
+
+        function triggerAnimations(slideElement) {
+            // Reinicia animações genéricas
+            const animatables = slideElement.querySelectorAll('.animate-text, .animate-img, .stat-number');
+            animatables.forEach(el => {
+                el.style.animation = 'none';
+                el.offsetHeight; 
+                el.style.animation = null; 
+            });
+
+            // Se for o slide do Chat
+            if (slideElement.id === 'slide-chat') {
+                const msgs = slideElement.querySelectorAll('.discord-msg');
+                const flash = document.getElementById('flash-effect');
+                
+                // Reinicia clarão
+                if(flash) {
+                    flash.style.animation = 'none';
+                    flash.offsetHeight;
+                    flash.style.animation = 'flashBang 2.5s ease-out forwards';
+                }
+
+                // Reinicia linhas de texto
+                msgs.forEach((msg, index) => {
+                    msg.style.animation = 'none';
+                    setTimeout(() => {
+                        msg.style.animation = `fadeInMsg 0.4s ease forwards`;
+                    }, 800 + (index * 400));
+                });
+            }
+        }
+
+        // Teclado
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown') changeSlide(1);
+            if (e.key === 'ArrowUp') changeSlide(-1);
+        });
+        function triggerAnimations(slideElement) {
+    // 1. Reset básico de textos e imagens
+    const animatables = slideElement.querySelectorAll('.animate-text, .animate-img, .stat-number, .game-item');
+    animatables.forEach(el => {
+        el.style.animation = 'none';
+        el.offsetHeight; 
+        el.style.animation = null; 
+    });
+
+    // 2. Animação do Gráfico de Barras (Tentativas)
+    const bars = slideElement.querySelectorAll('.bar');
+    if (bars.length > 0) {
+        bars.forEach((bar, index) => {
+            bar.style.animation = 'none';
+            bar.style.transform = 'scaleY(0)'; // Garante que zera
+            setTimeout(() => {
+                // Animação crescer pra cima
+                bar.style.transition = 'transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275)'; 
+                bar.style.transform = 'scaleY(1)';
+                bar.style.opacity = '1';
+            }, 300 + (index * 200));
+        });
+    }
+
+    // 3. Calculadora de Dias (Só roda se for o slide dos dias)
+    if (slideElement.id === 'days-slide') {
+        const today = new Date();
+        const diffTime = Math.abs(today - startDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        
+        // Efeito de contagem numérica (0 até o número real)
+        const counterElement = document.getElementById('days-count');
+        let currentNum = 0;
+        const interval = setInterval(() => {
+            if (currentNum >= diffDays) {
+                clearInterval(interval);
+                counterElement.innerText = diffDays;
+            } else {
+                currentNum += Math.ceil(diffDays / 50); // Velocidade da contagem
+                if(currentNum > diffDays) currentNum = diffDays;
+                counterElement.innerText = currentNum;
+            }
+        }, 30);
+    }
+
+    // 4. Lógica do Discord (Mantenha o que você já tinha aqui...)
+    if (slideElement.id === 'slide-chat') {
+        // ...seu código antigo do chat flashbang...
+        const msgs = slideElement.querySelectorAll('.discord-msg');
+        const flash = document.getElementById('flash-effect');
+        if(flash) {
+            flash.style.animation = 'none';
+            flash.offsetHeight;
+            flash.style.animation = 'flashBang 2.5s ease-out forwards';
+        }
+        msgs.forEach((msg, index) => {
+            msg.style.animation = 'none';
+            setTimeout(() => {
+                msg.style.animation = `fadeInMsg 0.4s ease forwards`;
+            }, 800 + (index * 400));
+        });
+    }
+}
+    </script>
+</body>
+</html>
